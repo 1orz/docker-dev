@@ -8,7 +8,7 @@ WORKDIR /app
 
 ARG DEBIAN_FRONTEND=noninteractive
 
-RUN apk update && apk add ca-certificates && \
+RUN apt update && apt install a-certificates && \
     mkdir /app/certs
 ENV DERP_DOMAIN your-hostname.com
 ENV DERP_CERT_MODE manual
