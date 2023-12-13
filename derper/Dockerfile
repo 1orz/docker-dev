@@ -1,9 +1,9 @@
-FROM golang:latest AS builder
+FROM golang AS builder
 WORKDIR /app
 
 RUN go install tailscale.com/cmd/derper@main
 
-FROM alpine
+FROM ubuntu
 WORKDIR /app
 
 ARG DEBIAN_FRONTEND=noninteractive
