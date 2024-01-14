@@ -290,8 +290,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           platforms: linux/amd64,linux/arm64,linux/arm
-          context: php/
-          file: Dockerfile.php5
+          file: php/Dockerfile.php5
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/php-5.6:latest
 
@@ -317,8 +316,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           platforms: linux/amd64,linux/arm64,linux/arm
-          context: php/
-          file: Dockerfile.php7
+          file: php/Dockerfile.php7
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/php-7.4:latest
 
@@ -344,8 +342,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           platforms: linux/amd64,linux/arm64,linux/arm
-          context: php/
-          file: Dockerfile.php8
+          file: php/Dockerfile.php8
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/php:latest
 
