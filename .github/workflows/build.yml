@@ -138,6 +138,16 @@ jobs:
           context: .
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/gitea:latest,${{ secrets.DOCKERHUB_USERNAME }}/gitea:${{ steps.get-tag.outputs.LATEST_TAG }}
+      
+      - name: Build and push rootless
+        uses: docker/build-push-action@v5
+        with:
+          platforms: linux/amd64,linux/arm64,linux/arm
+          build-args: GITEA_VERSION=${{ steps.get-tag.outputs.LATEST_TAG }}
+          context: .
+          file: Dockerfile.rootless
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/gitea-rootlees-latest:latest,${{ secrets.DOCKERHUB_USERNAME }}/gitea-rootless:${{ steps.get-tag.outputs.LATEST_TAG }}
 
   gogs:
     runs-on: ubuntu-latest
