@@ -147,7 +147,7 @@ jobs:
           context: .
           file: Dockerfile.rootless
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/gitea-rootlees-latest:latest,${{ secrets.DOCKERHUB_USERNAME }}/gitea-rootless:${{ steps.get-tag.outputs.LATEST_TAG }}
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/gitea:latest-rootless,${{ secrets.DOCKERHUB_USERNAME }}/gitea:${{ steps.get-tag.outputs.LATEST_TAG }}-rootless
 
   gogs:
     runs-on: ubuntu-latest
