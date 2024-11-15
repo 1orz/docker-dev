@@ -250,7 +250,66 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/caddy:latest
 
+  caddy-alpine-beta:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          repository: caddyserver/caddy-docker
+          fetch-depth: 0
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          platforms: linux/amd64,linux/arm64
+          context: 2.9/alpine
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/caddy:alpine-beta
+
+  caddy-builder-beta:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          repository: caddyserver/caddy-docker
+          fetch-depth: 0
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          platforms: linux/amd64,linux/arm64
+          context: 2.9/builder
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/caddy:builder-beta
+
   caddy-beta:
+    needs: [caddy-alpine-beta, caddy-builder-beta]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
