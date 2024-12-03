@@ -1,0 +1,443 @@
+name: Build Docker Image
+
+on:
+  schedule:
+    - cron: "0 1 * * *"
+  push:
+    branches:
+      - "main"
+  workflow_dispatch:
+        
+jobs:
+  derper:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@main
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@master
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@master
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@master
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@master
+        with:
+          platforms: linux/amd64,linux/arm64
+          context: .
+          file: derper/Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/derper:latest
+
+  xrayr:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@main
+        with:
+          repository: XrayR-project/XrayR
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@master
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@master
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@master
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@master
+        with:
+          platforms: linux/amd64,linux/arm64
+          context: .
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/xrayr:latest
+
+  xray:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Get Latest Release Tag
+        id: get-tag
+        run: |
+          TAG=$(curl -s "https://api.github.com/repos/XTLS/Xray-core/releases/latest" | jq -r '.tag_name')
+          echo "LATEST_TAG=${TAG}" >> $GITHUB_OUTPUT
+          echo "The latest release version: $TAG"
+
+      - name: Checkout Latest Release
+        uses: actions/checkout@main
+        with:
+          repository: XTLS/Xray-core
+          fetch-tags: true
+          ref: ${{ steps.get-tag.outputs.LATEST_TAG }}
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@master
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@master
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@master
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@master
+        with:
+          platforms: linux/amd64,linux/arm64
+          context: .
+          file: .github/docker/Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/xray:latest,${{ secrets.DOCKERHUB_USERNAME }}/xray:${{ steps.get-tag.outputs.LATEST_TAG }}
+
+  gitea:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Get Latest Release Tag
+        id: get-tag
+        run: |
+          TAG=$(curl -s "https://api.github.com/repos/go-gitea/gitea/releases/latest" | jq -r '.tag_name')
+          echo "LATEST_TAG=${TAG}" >> $GITHUB_OUTPUT
+          echo "The latest release version: $TAG"
+
+      - name: Checkout Latest Release
+        uses: actions/checkout@main
+        with:
+          repository: go-gitea/gitea
+          fetch-tags: true
+          ref: ${{ steps.get-tag.outputs.LATEST_TAG }}
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@master
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@master
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@master
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@master
+        with:
+          platforms: linux/amd64,linux/arm64
+          build-args: GITEA_VERSION=${{ steps.get-tag.outputs.LATEST_TAG }}
+          context: .
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/gitea:latest,${{ secrets.DOCKERHUB_USERNAME }}/gitea:${{ steps.get-tag.outputs.LATEST_TAG }}
+
+      - name: Build and push rootless
+        uses: docker/build-push-action@master
+        with:
+          platforms: linux/amd64,linux/arm64
+          build-args: GITEA_VERSION=${{ steps.get-tag.outputs.LATEST_TAG }}
+          context: .
+          file: Dockerfile.rootless
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/gitea:latest-rootless,${{ secrets.DOCKERHUB_USERNAME }}/gitea:${{ steps.get-tag.outputs.LATEST_TAG }}-rootless
+
+  gogs:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Get Latest Release Tag
+        id: get-tag
+        run: |
+          TAG=$(curl -s "https://api.github.com/repos/gogs/gogs/releases/latest" | jq -r '.tag_name')
+          echo "LATEST_TAG=${TAG}" >> $GITHUB_OUTPUT
+          echo "The latest release version: $TAG"
+
+      - name: Checkout Latest Release
+        uses: actions/checkout@main
+        with:
+          repository: gogs/gogs
+          fetch-tags: true
+          ref: ${{ steps.get-tag.outputs.LATEST_TAG }}
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@master
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@master
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@master
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@master
+        with:
+          platforms: linux/amd64,linux/arm64
+          context: .
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/gogs:latest,${{ secrets.DOCKERHUB_USERNAME }}/gogs:${{ steps.get-tag.outputs.LATEST_TAG }}
+
+  nps:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@main
+        with:
+          repository: ehang-io/nps
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@master
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@master
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@master
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build Server-side and push
+        uses: docker/build-push-action@master
+        with:
+          platforms: linux/amd64,linux/arm64
+          context: .
+          file: Dockerfile.nps
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/nps-server:latest
+
+      - name: Build Client-side and push
+        uses: docker/build-push-action@master
+        with:
+          platforms: linux/amd64,linux/arm64
+          context: .
+          file: Dockerfile.npc
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/nps-client:latest
+
+  caddy:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@main
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@master
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@master
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@master
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@master
+        with:
+          platforms: linux/amd64,linux/arm64
+          context: caddy
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/caddy:latest
+
+  caddy-alpine-beta:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@main
+        with:
+          repository: caddyserver/caddy-docker
+          fetch-depth: 0
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@master
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@master
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@master
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@master
+        with:
+          platforms: linux/amd64,linux/arm64
+          context: 2.9/alpine
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/caddy:alpine-beta
+
+  caddy-builder-beta:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@main
+        with:
+          repository: caddyserver/caddy-docker
+          fetch-depth: 0
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@master
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@master
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@master
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@master
+        with:
+          platforms: linux/amd64,linux/arm64
+          context: 2.9/builder
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/caddy:builder-beta
+
+  caddy-beta:
+    needs: [caddy-alpine-beta, caddy-builder-beta]
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@main
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@master
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@master
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@master
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@master
+        with:
+          platforms: linux/amd64,linux/arm64
+          context: caddy-beta
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/caddy:beta
+
+  php-56:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@main
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@master
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@master
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@master
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@master
+        with:
+          platforms: linux/amd64,linux/arm64
+          file: php/Dockerfile.php5
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/php-5.6:latest
+
+  php-74:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@main
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@master
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@master
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@master
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@master
+        with:
+          platforms: linux/amd64,linux/arm64
+          file: php/Dockerfile.php7
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/php-7.4:latest
+
+  php:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@main
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@master
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@master
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@master
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@master
+        with:
+          platforms: linux/amd64,linux/arm64
+          file: php/Dockerfile.php8
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/php:latest
+
+  hugo:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@main
+        with:
+          repository: gohugoio/hugo
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@master
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@master
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@master
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@master
+        with:
+          platforms: linux/amd64,linux/arm64
+          context: .
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/hugo:latest
