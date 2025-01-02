@@ -36,6 +36,47 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/derper:latest
 
+  derper-probe:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@main
+      
+      - name: Save derper-probe file
+        run: |
+          cp tailscale\derper-probe\Dockerfile.derp-probe /tmp/Dockerfile.derp-probe
+
+      - name: Checkout tailscale
+        uses: actions/checkout@main
+        with:
+          repository: tailscale/tailscale
+          fetch-depth: 0
+      
+      - name: Restore derper-probe file
+        run: |
+          cp /tmp/Dockerfile.derp-probe tailscale\derper-probe\Dockerfile.derp-probe
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@master
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@master
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@master
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@master
+        with:
+          platforms: linux/amd64,linux/arm64
+          context: .
+          file: Dockerfile.derp-probe
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/derp-probe:latest
+
   xrayr:
     runs-on: ubuntu-24.04
     steps:
