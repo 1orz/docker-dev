@@ -54,7 +54,7 @@ jobs:
       
       - name: Restore derper-probe file
         run: |
-          cp /tmp/Dockerfile.derp-probe tailscale\derper-probe\Dockerfile.derp-probe
+          cp /tmp/Dockerfile.derp-probe Dockerfile.derp-probe
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@master
