@@ -44,7 +44,7 @@ jobs:
       
       - name: Save derper-probe file
         run: |
-          cp tailscale\derper-probe\Dockerfile.derp-probe /tmp/Dockerfile.derp-probe
+          cp tailscale/derper-probe/Dockerfile.derp-probe /tmp/Dockerfile.derp-probe
 
       - name: Checkout tailscale
         uses: actions/checkout@main
