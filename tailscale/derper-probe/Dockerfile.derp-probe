@@ -19,7 +19,7 @@ ENV DERP_MAP=https://login.tailscale.com/derpmap/default \
     BW_INTERVAL=0 \
     BW_PROBE_SIZE_BYTES=1_000_000
 
-COPY --from=build-env /go/src/tailscale/derpprobe/derpprobe /usr/local/bin/derpprobe
+COPY --from=build-env /go/src/tailscale/derpprobe /usr/local/bin/derpprobe
 
 ENTRYPOINT ["sh", "-c", "/usr/local/bin/derpprobe \
     -derp-map=${DERP_MAP} \
