@@ -1,0 +1,14 @@
+FROM php:fpm-alpine
+COPY --from=composer /usr/bin/composer /usr/bin/composer
+RUN apk update && apk add --no-cache \
+    build-base \
+    yaml-dev \
+    autoconf \
+    libsodium-dev \
+    libzip-dev \
+    supervisor \
+    file \
+    re2c \
+    && pecl install redis zip yaml \
+    && docker-php-ext-install pcntl pdo_mysql bcmath mysqli \
+    && docker-php-ext-enable redis zip yaml pcntl pdo_mysql bcmath mysqli
