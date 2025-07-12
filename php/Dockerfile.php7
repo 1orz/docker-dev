@@ -1,0 +1,7 @@
+FROM php:7.4-fpm-alpine
+COPY --from=composer /usr/bin/composer /usr/bin/composer
+RUN apk update && apk add build-base autoconf libsodium-dev libzip-dev tzdata supervisor libpng-dev gmp-dev \
+    && cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
+    && pecl install redis zip \
+    && docker-php-ext-install gd pcntl pdo_mysql bcmath gmp \
+    && docker-php-ext-enable gd redis zip pcntl pdo_mysql
