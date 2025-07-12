@@ -1,0 +1,296 @@
+name: Build Docker Image (Offen used by cloudorz)
+
+on:
+  schedule:
+    - cron: "0 1 */2 * *"
+  # push:
+  workflow_dispatch:
+    inputs:
+      build_derper:
+        description: '编译 derper'
+        type: boolean
+        default: false
+      build_derper_probe:
+        description: '编译 derper-probe'
+        type: boolean
+        default: false
+      build_xrayr:
+        description: '编译 xrayr'
+        type: boolean
+        default: false
+      build_xray_stable:
+        description: '编译 xray-stable'
+        type: boolean
+        default: false
+      build_xray_dev:
+        description: '编译 xray-dev'
+        type: boolean
+        default: false
+      build_caddy:
+        description: '编译 caddy'
+        type: boolean
+        default: false
+      build_caddy_dev:
+        description: '编译 caddy-dev'
+        type: boolean
+        default: false
+
+
+jobs:
+  derper:
+    # 只有在 schedule 触发或手动选择了该镜像时才执行
+    if: github.event_name == 'schedule' || github.event.inputs.build_derper == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@main
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@master
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@master
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@master
+        with:
+          username: cloudorz
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@master
+        env:
+          DOCKER_BUILD_SUMMARY: false
+          DOCKER_BUILD_RECORD_UPLOAD: false
+        with:
+          platforms: linux/amd64,linux/arm64
+          context: .
+          file: derper/Dockerfile
+          push: true
+          tags: cloudorz/derper:latest
+
+  derper-probe:
+    if: github.event_name == 'schedule' || github.event.inputs.build_derper_probe == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@main
+
+      - name: Save derper-probe file
+        run: |
+          cp tailscale/derper-probe/Dockerfile.derp-probe /tmp/Dockerfile.derp-probe
+
+      - name: Checkout tailscale
+        uses: actions/checkout@main
+        with:
+          repository: tailscale/tailscale
+          fetch-depth: 0
+
+      - name: Restore derper-probe file
+        run: |
+          cp /tmp/Dockerfile.derp-probe Dockerfile.derp-probe
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@master
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@master
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@master
+        with:
+          username: cloudorz
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@master
+        env:
+          DOCKER_BUILD_SUMMARY: false
+          DOCKER_BUILD_RECORD_UPLOAD: false
+        with:
+          platforms: linux/amd64,linux/arm64
+          context: .
+          file: Dockerfile.derp-probe
+          push: true
+          tags: cloudorz/derp-probe:latest
+
+  xrayr:
+    if: github.event_name == 'schedule' || github.event.inputs.build_xrayr == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@main
+
+      - name: Save xrayr Dockerfile
+        run: |
+          cp xrayr/Dockerfile /tmp/Dockerfile.xrayr
+
+      - name: Checkout XrayR
+        uses: actions/checkout@main
+        with:
+          repository: XrayR-project/XrayR
+          fetch-depth: 0
+
+      - name: Restore xrayr Dockerfile
+        run: |
+          cp /tmp/Dockerfile.xrayr Dockerfile
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@master
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@master
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@master
+        with:
+          username: cloudorz
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@master
+        env:
+          DOCKER_BUILD_SUMMARY: false
+          DOCKER_BUILD_RECORD_UPLOAD: false
+        with:
+          platforms: linux/amd64,linux/arm64
+          context: .
+          push: true
+          tags: cloudorz/xrayr:latest
+
+  xray-stable:
+    if: github.event_name == 'schedule' || github.event.inputs.build_xray_stable == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get Latest Release Tag
+        id: get-tag
+        run: |
+          TAG=$(curl -s "https://api.github.com/repos/XTLS/Xray-core/releases/latest" | jq -r '.tag_name')
+          echo "LATEST_TAG=${TAG}" >> $GITHUB_OUTPUT
+          echo "The latest release version: $TAG"
+
+      - name: Checkout Latest Release
+        uses: actions/checkout@main
+        with:
+          repository: XTLS/Xray-core
+          fetch-depth: 0
+          fetch-tags: true
+          ref: ${{ steps.get-tag.outputs.LATEST_TAG }}
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@master
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@master
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@master
+        with:
+          username: cloudorz
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@master
+        env:
+          DOCKER_BUILD_SUMMARY: false
+          DOCKER_BUILD_RECORD_UPLOAD: false
+        with:
+          platforms: linux/amd64,linux/arm64
+          context: .
+          file: .github/docker/Dockerfile
+          push: true
+          tags: cloudorz/xray:latest,cloudorz/xray:${{ steps.get-tag.outputs.LATEST_TAG }}
+
+  xray-dev:
+    if: github.event_name == 'schedule' || github.event.inputs.build_xray_dev == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Latest Release
+        uses: actions/checkout@main
+        with:
+          repository: XTLS/Xray-core
+          fetch-depth: 0
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@master
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@master
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@master
+        with:
+          username: cloudorz
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@master
+        env:
+          DOCKER_BUILD_SUMMARY: false
+          DOCKER_BUILD_RECORD_UPLOAD: false
+        with:
+          platforms: linux/amd64,linux/arm64
+          context: .
+          file: .github/docker/Dockerfile
+          push: true
+          tags: cloudorz/xray:dev
+
+  caddy:
+    if: github.event_name == 'schedule' || github.event.inputs.build_caddy == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@main
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@master
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@master
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@master
+        with:
+          username: cloudorz
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@master
+        env:
+          DOCKER_BUILD_SUMMARY: false
+          DOCKER_BUILD_RECORD_UPLOAD: false
+        with:
+          platforms: linux/amd64,linux/arm64
+          context: caddy
+          push: true
+          tags: cloudorz/caddy:latest
+
+  caddy-dev:
+    if: github.event_name == 'schedule' || github.event.inputs.build_caddy_dev == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@main
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@master
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@master
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@master
+        with:
+          username: cloudorz
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@master
+        env:
+          DOCKER_BUILD_SUMMARY: false
+          DOCKER_BUILD_RECORD_UPLOAD: false
+        with:
+          platforms: linux/amd64,linux/arm64
+          context: caddy-dev
+          push: true
+          tags: cloudorz/caddy:dev

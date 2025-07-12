@@ -1,0 +1,21 @@
+name: Delete Outdate Workflow Runs
+
+on:
+  schedule:
+    - cron: "0 2 * * *"
+  push:
+    branches:
+      - "main"
+  workflow_dispatch:
+  
+jobs:
+  Delete_Workflow_Runs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete workflow runs
+        uses: Mattraks/delete-workflow-runs@main
+        with:
+          token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          retain_days: 2
+          keep_minimum_runs: 2
