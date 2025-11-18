@@ -318,6 +318,36 @@ jobs:
           push: true
           tags: cloudorz/php:latest, cloudorz/php:fpm-alpine
 
+  php-swoole:
+    if: github.event_name == 'schedule' || github.event.inputs.build_php_latest == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@main
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@master
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@master
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@master
+        with:
+          username: cloudorz
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@master
+        env:
+          DOCKER_BUILD_SUMMARY: false
+          DOCKER_BUILD_RECORD_UPLOAD: false
+        with:
+          platforms: linux/amd64,linux/arm64
+          file: php/Dockerfile-swoole
+          push: true
+          tags: cloudorz/php-swoole:latest
+
   hugo:
     if: github.event_name == 'schedule' || github.event.inputs.build_hugo == 'true'
     runs-on: ubuntu-latest
