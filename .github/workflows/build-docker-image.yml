@@ -1,4 +1,4 @@
-name: Build Docker Image (Offen used by cloudorz)
+name: Build Docker Image
 
 on:
   schedule:

@@ -33,10 +33,6 @@ on:
         description: '构建 Waline'
         type: boolean
         default: false
-      build_caddy_with_namecheap:
-        description: '构建 Caddy 仅 Namecheap 插件'
-        type: boolean
-        default: false
 
 jobs:
   cloudflared:
@@ -413,35 +409,4 @@ jobs:
           context: packages/server
           file: packages/server/Dockerfile.source-build-alpine
           push: true
-          tags: cloudorz/waline:latest, cloudorz/waline:alpine 
-
-  caddy-with-namecheap:
-    if: github.event_name == 'schedule' || github.event.inputs.build_caddy_with_namecheap == 'true'
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@main
-
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@master
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@master
-
-      - name: Login to Docker Hub
-        uses: docker/login-action@master
-        with:
-          username: cloudorz
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Build and push
-        uses: docker/build-push-action@master
-        env:
-          DOCKER_BUILD_SUMMARY: false
-          DOCKER_BUILD_RECORD_UPLOAD: false
-        with:
-          platforms: linux/amd64,linux/arm64
-          context: caddy
-          file: caddy-dev-for-neamcheap/Dockerfile
-          push: true
-          tags: cloudorz/caddy:latest-namecheap
+          tags: cloudorz/waline:latest, cloudorz/waline:alpine
