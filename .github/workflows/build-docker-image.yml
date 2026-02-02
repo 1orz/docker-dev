@@ -2,7 +2,7 @@ name: Build Docker Image
 
 on:
   schedule:
-    - cron: "0 1 */2 * *"
+    - cron: "0 3 * * *"  # 每天凌晨3点运行，错开主要workflow的时间
   # push:
   workflow_dispatch:
     inputs:
