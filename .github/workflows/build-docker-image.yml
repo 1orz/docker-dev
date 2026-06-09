@@ -34,6 +34,10 @@ on:
         description: '编译 caddy-dev'
         type: boolean
         default: false
+      build_xboard_node:
+        description: '编译 xboard-node'
+        type: boolean
+        default: false
 
 
 jobs:
@@ -157,6 +161,42 @@ jobs:
           context: .
           push: true
           tags: cloudorz/xrayr:latest
+  xboard-node:
+    if: github.event_name == 'schedule' || github.event.inputs.build_xboard_node == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@main
+      - name: Save xboard-node Dockerfile
+        run: |
+          cp xboard-node/Dockerfile /tmp/Dockerfile.xboard-node
+      - name: Checkout xboard-node
+        uses: actions/checkout@main
+        with:
+          repository: cedar2025/Xboard-Node
+          fetch-depth: 0
+      - name: Restore xboard-node Dockerfile
+        run: |
+          cp /tmp/Dockerfile.xboard-node Dockerfile
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@master
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@master
+      - name: Login to Docker Hub
+        uses: docker/login-action@master
+        with:
+          username: cloudorz
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Build and push
+        uses: docker/build-push-action@master
+        env:
+          DOCKER_BUILD_SUMMARY: false
+          DOCKER_BUILD_RECORD_UPLOAD: false
+        with:
+          platforms: linux/amd64,linux/arm64
+          context: .
+          push: true
+          tags: cloudorz/xboard-node:latest
 
   xray-stable:
     if: github.event_name == 'schedule' || github.event.inputs.build_xray_stable == 'true'

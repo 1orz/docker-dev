@@ -1,0 +1,22 @@
+version: 2
+updates:
+  # GitHub Actions used in the build workflows
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+
+  # Base images in all Dockerfiles across subdirectories
+  - package-ecosystem: "docker"
+    directories:
+      - "/**"
+    schedule:
+      interval: "weekly"
+    groups:
+      docker-base-images:
+        patterns:
+          - "*"
