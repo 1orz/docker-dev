@@ -8,6 +8,7 @@ ENV GO111MODULE=on \
   # which changes how cloudflared binds the metrics server
   CONTAINER_BUILD=1
 
+RUN apk add --no-cache git make
 
 WORKDIR /go/src/github.com/cloudflare/cloudflared/
 
