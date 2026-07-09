@@ -1,11 +1,9 @@
 # use a builder image for building cloudflare
-ARG TARGET_GOOS
-ARG TARGET_GOARCH
 FROM golang:alpine AS builder
+ARG TARGETOS
+ARG TARGETARCH
 ENV GO111MODULE=on \
   CGO_ENABLED=0 \
-  TARGET_GOOS=${TARGET_GOOS} \
-  TARGET_GOARCH=${TARGET_GOARCH} \
   # the CONTAINER_BUILD envvar is used set github.com/cloudflare/cloudflared/metrics.Runtime=virtual
   # which changes how cloudflared binds the metrics server
   CONTAINER_BUILD=1
@@ -14,11 +12,14 @@ ENV GO111MODULE=on \
 WORKDIR /go/src/github.com/cloudflare/cloudflared/
 
 # copy our sources into the builder image
-ARG CLOUDFLARED_REF=master
-RUN git clone --depth 1 --branch ${CLOUDFLARED_REF} https://github.com/cloudflare/cloudflared.git .
+COPY . .
 
 # compile cloudflared
-RUN make cloudflared
+RUN if [ -n "${TARGETOS}" ] && [ -n "${TARGETARCH}" ]; then \
+      make TARGET_OS="${TARGETOS}" TARGET_ARCH="${TARGETARCH}" cloudflared; \
+    else \
+      make cloudflared; \
+    fi
 
 # use a distroless base image with glibc
 FROM gcr.io/distroless/base-debian12:nonroot

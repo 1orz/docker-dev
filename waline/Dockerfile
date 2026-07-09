@@ -3,15 +3,26 @@ ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 WORKDIR /app
 
-RUN apk add --no-cache bash tzdata && \
+RUN apk add --no-cache bash libstdc++ tzdata && \
     cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime && \
     echo "Asia/Shanghai" > /etc/timezone && \
     corepack enable
 
 COPY . .
+RUN printf '%s\n' \
+    'allowBuilds:' \
+    "  '@parcel/watcher': true" \
+    '  core-js-pure: true' \
+    '  esbuild: true' \
+    '  sqlite3: true' \
+    '  better-sqlite3: true' \
+    '  unrs-resolver: true' \
+    > pnpm-workspace.yaml
 
 FROM base AS prod-deps
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --prod
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store \
+    apk add --no-cache --virtual .build-deps g++ make python3 && \
+    pnpm install --prod
 
 FROM base AS runtime
 ENV NODE_ENV=production

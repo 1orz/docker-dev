@@ -381,11 +381,22 @@ jobs:
     if: github.event_name == 'schedule' || github.event.inputs.build_waline == 'true'
     runs-on: ubuntu-latest
     steps:
+      - name: Checkout
+        uses: actions/checkout@main
+
+      - name: Save Dockerfile
+        run: |
+          cp waline/Dockerfile /tmp/Dockerfile.waline
+
       - name: Checkout waline
         uses: actions/checkout@main
         with:
           repository: walinejs/waline
           fetch-depth: 0
+
+      - name: Restore Dockerfile
+        run: |
+          cp /tmp/Dockerfile.waline packages/server/Dockerfile.source-build-alpine
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@master
