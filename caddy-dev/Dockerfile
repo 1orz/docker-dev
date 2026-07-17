@@ -1,14 +1,17 @@
 FROM golang:alpine AS builder
 # 从xcaddy 最新master分支构建xcaddy
-RUN go install github.com/caddyserver/xcaddy/cmd/xcaddy@master
+RUN go install github.com/caddyserver/xcaddy/cmd/xcaddy@master \
+    && go install github.com/caddyserver/xcaddy/cmd/xcaddy@latest
+
 
 WORKDIR /workspace
 RUN xcaddy build \
     --with github.com/caddy-dns/alidns \
     --with github.com/caddy-dns/tencentcloud \
-    --with github.com/caddy-dns/cloudflare
+    --with github.com/caddy-dns/cloudflare \
+    --with github.com/ss098/certmagic-s3
 
-FROM debian:latest
+FROM alpine:latest
 
 COPY --from=builder /workspace/caddy /usr/bin/caddy
 
