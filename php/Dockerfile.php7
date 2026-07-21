@@ -1,4 +1,4 @@
-FROM php:7.4-fpm-alpine
+FROM php:8.5-fpm-alpine
 COPY --from=composer /usr/bin/composer /usr/bin/composer
 RUN apk update && apk add build-base autoconf libsodium-dev libzip-dev tzdata supervisor libpng-dev gmp-dev \
     && cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \
