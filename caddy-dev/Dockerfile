@@ -9,6 +9,7 @@ RUN xcaddy build \
     --with github.com/caddy-dns/alidns \
     --with github.com/caddy-dns/tencentcloud \
     --with github.com/caddy-dns/cloudflare \
+    --with github.com/mholt/caddy-l4 \
     --with github.com/ss098/certmagic-s3
 
 FROM alpine:latest
